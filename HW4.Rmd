@@ -1,0 +1,265 @@
+---
+title: "**HW 4 2/20/24**"
+author: "Emma Zhou - ez4493 - SDS 315"
+output:
+  html_document:
+  pdf_document:  
+    toc: true
+    toc_float: yes
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+------------------------------------------------------------------------
+
+Link to GitHub:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(mosaic)
+```
+
+## **Q1**
+
+### **A)**
+
+### Gas stations charge more if they lack direct competition in sight.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+gas_prices <- read.csv('gasprices.csv')
+
+boot_gas_comp <- do(10000) * diffmean(Price ~ Competitors, data = mosaic::resample(gas_prices))
+
+confint(boot_gas_comp, level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_gas_comp) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Gas Price by Competition Proximity', x = 'Difference in Average Gas Price', y = 'Frequency')
+```
+
+To account for statistical uncertainty from the sampling process, the difference in average prices for stations with and without competitors in sight is considered from a bootstrapped resample of 10,000. From this resample, the difference in average price is between -0.055 and 0.007 with a 95% confidence.
+
+From this interval, the data suggests that there is not a large difference in how much gas prices charge based on whether there is direct competition in sight. The histogram of differences in average gas price is normally distributed around a difference in price near 0, showing minimal difference. Thus, the claim is unsupported.
+
+### **B)**
+
+### The richer the area, the higher the gas prices.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+boot_gas <- do(10000) * mosaic::resample(gas_prices)
+
+boot_gas_income <- do(10000) * cor(Price ~ Income, data = mosaic::resample(gas_prices))
+
+confint(boot_gas_income, level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_gas) + geom_point(aes(x = Income, y = Price)) + labs(title = 'Gas Prices by Area Income', y = 'Gas Price Per Gallon ($/G)', x = 'Median Zipcode Income ($)')
+```
+
+To account for statistical uncertainty from the sampling process, the correlation coefficient between area income and gas prices is considered from a bootstrapped resample of 10,000. From this resample, the correlation is between 0.194 and 0.569 with a 95% confidence.
+
+From this interval, the data suggests that the correlation between area income or "richness" and gas prices is not strong, as the correlation coefficient is not close to 1. The scatterplot of gas prices by area income for the resample also does not show a close trend. Thus, the claim is unsupported.
+
+### **C)**
+
+### Gas stations at stoplights charge more.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+boot_gas_light <- do(10000) * diffmean(Price ~ Stoplight, data = mosaic::resample(gas_prices))
+
+confint(boot_gas_light, level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_gas_light) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Gas Price by Whether at Stoplight', x = 'Difference in Average Gas Price', y = 'Frequency')
+```
+
+To account for statistical uncertainty from the sampling process, the difference in average prices for stations at stoplights vs not at stoplights is considered from a bootstrapped resample of 10,000. From this resample, the difference in average price is between -0.037 and 0.031 with a 95% confidence.
+
+From this interval, the data suggests that there is not a large difference in how much gas prices charge based on whether there they are at a stoplight or not. The histogram of differences in average gas price is normally distributed around a difference in price near 0, showing minimal difference. Thus, the claim is unsupported.
+
+### **D)**
+
+### Gas stations with direct highway access charge more.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+boot_gas_hw <- do(10000) * diffmean(Price ~ Highway, data = mosaic::resample(gas_prices))
+
+confint(boot_gas_hw, level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_gas_hw) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Gas Price by Direct Access to Highway', x = 'Difference in Average Gas Price', y = 'Frequency')
+```
+
+To account for statistical uncertainty from the sampling process, the difference in average prices for stations with and without direct highway access is considered from a bootstrapped resample of 10,000. From this resample, the difference in average price is between 0.009 and 0.082 with a 95% confidence.
+
+From this interval, the data suggests that there is not a large difference in how much gas prices charge based on whether there they have direct highway access or not. Thus, the claim is unsupported.
+
+### **E)**
+
+### Shell charges more than all other non-Shell brands.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+gas_shell <- mutate(gas_prices, Shell = ifelse(Name == 'Shell', 'Y', 'N'))
+
+boot_gas_shell <- do(10000) * diffmean(Price ~ Shell, data = mosaic::resample(gas_shell))
+
+confint(boot_gas_shell, level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_gas_shell) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Gas Price by Shell Brand', x = 'Difference in Average Gas Price', y = 'Frequency')
+```
+
+To account for statistical uncertainty from the sampling process, the difference in average prices for Shell brand gas and non-Shell brand gas is considered from a bootstrapped resample of 10,000. From this resample, the difference in average price is between -0.009 and 0.065 with a 95% confidence.
+
+From this interval, the data suggests that there is not a large difference in how much gas prices charge based on whether it is Shell brand or not. The histogram of differences in average gas price is normally distributed around a difference in price near 0, showing minimal difference. Thus, the claim is unsupported.
+
+## **Q2**
+
+### **A)**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+sclass <- read.csv('sclass.csv')
+sclass_2011 <- filter(sclass, year == 2011 & trim == '63 AMG')
+
+boot_sclass_2011 <- do(10000) * mean(~mileage, data =  mosaic::resample(sclass_2011))
+
+# ggplot(boot_sclass_2011) + geom_histogram(aes(x = mean))
+
+confint(boot_sclass_2011, level = 0.95)
+```
+
+The 95% bootstrap confidence interval for the average mileage of 2011 S-Class 63 AMGs is between 26,226 miles and 31,813 miles.
+
+### **B)**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+sclass <- mutate(sclass, isBlack = ifelse(color == "Black", TRUE, FALSE))
+
+sclass_2014 <- filter(sclass, year == 2014 & trim == '550')
+
+boot_sclass_2014 <-  do(10000) * prop(isBlack == TRUE ~ 10000, mosaic::resample(sclass_2014))
+
+# ggplot(boot_sclass_2014) + geom_histogram(aes(x = prop_TRUE.10000))
+
+confint(boot_sclass_2014, level = 0.95)
+```
+
+The 95% bootstrap confidence interval for the proportion of black S-Class 550s is between 0.417 and 0.452.
+
+## **Q3**
+
+### **A)**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+nbc_shows <- read.csv('nbc_pilotsurvey.csv')
+ed_earl <- filter(nbc_shows, Show == 'Living with Ed' | Show == 'My Name is Earl')
+
+boot_ed_earl_q1 <- do(10000) * diffmean(Q1_Happy ~ Show, data = mosaic::resample(ed_earl))
+
+confint(boot_ed_earl_q1, level = 0.95) #earl - ed
+
+summary(boot_ed_earl_q1)
+```
+
+1)  Is there a significant difference in mean viewer response to the Q1_Happy question for the shows "Living With Ed" and "My Name is Earl"? If so, which has a higher average response?
+
+2)  To find out which show as on average higher responses for the Q1_Happy question, a bootstrap resample was taken 10,000 times to minimize statistical uncertainty from the sampling process and find any significant difference between the shows with 95% confidence.
+
+3)  The histogram below shows the distribution of average responses to the question for the two different shows. This data was taken from the 10,000 bootstrapped resamples of the original viewer responses. Both the mean and median of this plot are around -0.15, meaning viewers generally rated "Living With Ed" higher on that question. With a 95% confidence interval, 95% of all differences in average responses falls between that interval.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_ed_earl_q1) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Viewer Responses for Q1_Happy Question', x = 'Difference in Average Reponses', y = 'Frequency')
+```
+
+4)  The 95% bootstrap confidence interval for the difference in average Q1_Happy responses between the shows "My Name is Earl" and "Living With Ed" is between -0.4 and 0.1. This means with 95% confidence, "Living with Ed" has a higher mean Q1_Happy response among viewers, making them happier, with a difference in responses between shows ranging from -0.4 and 0.1.
+
+### **B)**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+annoyed <- filter(nbc_shows, Show == 'The Biggest Loser' | Show == 'The Apprentice: Los Angeles')
+
+boot_annoyed <- do(10000) * diffmean(Q1_Annoyed ~ Show, data = mosaic::resample(annoyed))
+
+# ggplot(boot_annoyed) + geom_histogram(aes(x = diffmean))
+
+confint(boot_annoyed, level = 0.95) #loser - apprentice
+
+summary(annoyed)
+```
+
+1)  Is there a significant difference in mean viewer response to the Q1_Annoyed question for the shows "The Biggest Loser" and "The Apprentice: Los Angeles"? If so, which has a higher average response?
+
+2)  To find out which show as on average higher responses for the Q1_Annoyed question, a bootstrap resample was taken 10,000 times to minimize statistical uncertainty from the sampling process and find any significant difference between the shows with 95% confidence.
+
+3)  The histogram below shows the distribution of average responses to the question for the two different shows. This data was taken from the 10,000 bootstrapped resamples of the original viewer responses. Both the mean and median of this plot are around -0.27, meaning viewers generally rated "The Apprentice: Los Angeles" higher on that question. With a 95% confidence interval, 95% of all differences in average responses falls between that interval.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_annoyed) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Difference in Average Viewer Responses for Q1_Annoyed Question', x = 'Difference in Average Reponses', y = 'Frequency')
+```
+
+4)  The 95% bootstrap confidence interval for the difference in average Q1_Annoyed responses between the shows "The Biggest Loser" and "The Apprentice: Los Angeles" is between -0.53 and -0.02. This means with 95% confidence, "The Apprentice: Los Angeles" has a higher mean Q1_Annoyed response among viewers, making them more annoyed, with a difference in responses between shows ranging from -0.53 and -0.02.
+
+### **C)**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+dwts <- filter(nbc_shows, Show == 'Dancing with the Stars')
+
+boot_dwts <-  do(10000) * prop(Q2_Confusing >= 4 ~ 10000, mosaic::resample(dwts))
+
+# ggplot(boot_dwts) + geom_histogram(aes(x = prop_TRUE.10000), bins = 27)
+
+confint(boot_dwts, level = 0.95)
+
+summary(dwts)
+```
+
+1)  What proportion of viewers responded with a 4+ to the Q2_Confusing question about "Dancing With the Stars"?
+
+2)  To find what proportion of viewers responded to Q2_Confusing with 4 or more, a large bootstrap resample of 10,000 was taken to minimize statistical uncertainty from the sampling process and find the proportion of "confused" viewers with 95% confidence.
+
+3)  The histogram below shows the distribution of the proportion of viewers who responded with 4 or 5 to the Q2_Confusing question about DWTS. This data was taken from the 10,000 bootstrapped resamples of the original viewer responses. Both the mean and median of this plot are around 0.07-0.8, meaning the proportion of viewers that found the show confusing was around 0.07-0.08, which is a very small subset of all viewers who responded. With a 95% confidence interval, 95% of the proportions of "confused" viewers fall between that interval.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_dwts) + geom_histogram(aes(x = prop_TRUE.10000), bins = 27, fill = 'darkblue') + labs(title = 'Proportions of Viewers who Responded to Q2_Confusing with 4+', x = 'Proportion of "Confused" (4+) Viewers', y = 'Frequency') 
+```
+
+4)  The 95% bootstrap confidence interval for the proportion of viewers with a response of 4+ to the Q2_Confusing question about DWTS is between 0.04 and 0.12. This means with 95% confidence, the proportion of viewers expected to respond 4+ is between 0.04-0.12, which indicates very few responding viewers are confused about DWTS compared to all responding viewers.
+
+## **Q4**
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+ebay <- read.csv('ebay.csv')
+ebay <- mutate(ebay, rev_ratio = rev_after/rev_before)
+treatment <- filter(ebay, adwords_pause == 1)
+control <- filter(ebay, adwords_pause == 0)
+
+boot_ebay <- do(10000) * diffmean(rev_ratio ~ adwords_pause, data = mosaic::resample(ebay))
+
+# ggplot(boot_ebay) + geom_histogram(aes(x = diffmean))
+
+mean(control$rev_ratio)-mean(treatment$rev_ratio)
+
+confint(boot_ebay, level = 0.95)
+
+summary(boot_ebay)
+```
+
+1)  Is there a difference in Ebay's revenue ratio between DMAs with Google AdWords advertising and DMAs without?
+
+2)  To find out whether paid search advertising on Google creates extra revenue for EBay, the difference of revenue ratio means for the control and treatment groups is considered. A bootstrap resample was taken 10,000 times to minimize statistical uncertainty from the sampling process and find any significant difference between the control DMA group with continued advertising and the treatment DMA group with paused advertising.
+
+3)  The histogram below shows the distribution of the difference of mean revenue ratios between the control and treatment DMAs. This data was taken from the 10,000 bootstrapped resamples of the original DMAs' revenue ratio. Both the mean and median of this plot are around -0.05, meaning on average, there was only a 0.05 difference between the paid advertising and non-paid DMA groups. With a 95% confidence interval, 95% of all differences in average revenue ratios fall between that interval.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(boot_ebay) + geom_histogram(aes(x = diffmean), fill = 'darkblue') + labs(title = 'Distribution of the Differences in Revenue Ratio between Paid Ad and Non-Paid DMAs', x = 'Difference in Revenue Ratio', y = 'Frequency')
+```
+
+4)  The 95% bootstrap confidence interval for the differences in control and treatment revenue ratios is between -0.09 and -0.01. This means with 95% confidence, the difference in revenue ratios for the groups is only between -0.09 and -0.01, which is not a large differene. Thus, one could argue that paying for ads on Google does not generate significant extra revenue for EBay, and the revenue ratio between the control and experimental groups is relatively the same.
